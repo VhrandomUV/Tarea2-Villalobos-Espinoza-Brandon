@@ -25,7 +25,8 @@ def create_csv():
             writer.writerow(['prefix', 'manufacturer'])  # Encabezados
 
 # Guardar el prefijo MAC y el fabricante en el archivo CSV, evitando duplicados
-def save_mac_to_csv(prefix, manufacturer):
+def save_mac_to_csv(address, manufacturer):
+    prefix = ":".join(address.split(":")[:3])
     with open(csv_file, mode='r', newline='') as file:
         reader = csv.DictReader(file)
         prefixes = [row['prefix'] for row in reader]
@@ -44,7 +45,7 @@ def get_mac(address):
     address = normalize_mac(address)
 
     # Extraer los caracteres de interes
-    prefix = ":".join(address.split(":")[:3])
+    
     url = f"https://api.macvendors.com/{address}"
     
     s_time = time.time()
@@ -54,13 +55,13 @@ def get_mac(address):
 
     if response.status_code == 200:
         manufacturer = response.text.strip()
-        print("Prefijo MAC: ", prefix)
+        print("Dirección MAC: ", address)
         print("Fabricante: ", manufacturer)
         print(f'Tiempo de respuesta: {r_time:.2f}ms')
         
-        save_mac_to_csv(prefix, manufacturer)
+        save_mac_to_csv(address, manufacturer)
     else:
-        print("Prefijo MAC: ", prefix)
+        print("Dirección MAC: ", address)
         print("Fabricante: Not found")
         print(f'Tiempo de respuesta: {r_time:.2f}ms')
 
