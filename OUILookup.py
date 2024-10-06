@@ -2,68 +2,91 @@ import sys
 import requests
 import getopt
 import time
+import csv
+import os
 
+# Definir el nombre del archivo CSV
+csv_file = 'mac_addresses.csv'
 
+# Crear el archivo CSV si no existe
+def create_csv():
+    if not os.path.exists(csv_file):
+        with open(csv_file, mode='w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['prefix', 'manufacturer'])  # Encabezados
+
+# Guardar el prefijo MAC y el fabricante en el archivo CSV, evitando duplicados
+def save_mac_to_csv(prefix, manufacturer):
+    with open(csv_file, mode='r', newline='') as file:
+        reader = csv.DictReader(file)
+        prefixes = [row['prefix'] for row in reader]
+    
+    if prefix in prefixes:
+        print(f"Prefijo {prefix} ya está en el archivo.")
+    else:
+        with open(csv_file, mode='a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow([prefix, manufacturer])
+            print(f"Prefijo {prefix} y fabricante {manufacturer} guardados en el archivo.")
+
+# Obtener el fabricante de la API y guardar en el archivo CSV (usando solo el prefijo MAC)
 def get_mac(address):
-    url = f"https://api.macvendors.com/{address}"
+    # Extraer los primeros tres octetos
+    prefix = ":".join(address.split(":")[:3])
+    url = f"https://api.macvendors.com/{prefix}"
     
     s_time = time.time()
-
     response = requests.get(url)
-
     e_time = time.time()
-
-    r_time = (e_time-s_time) * 1000
+    r_time = (e_time - s_time) * 1000
 
     if response.status_code == 200:
-        print("MAC adress: ", address)
-        print("Fabricante: ", response.text)
+        manufacturer = response.text.strip()
+        print("Prefijo MAC: ", prefix)
+        print("Fabricante: ", manufacturer)
         print(f'Tiempo de respuesta: {r_time:.2f}ms')
-        sys.exit()
         
-    if address is None:
-        print("Por favor, proporciona una dirección MAC con el argumento --mac")
-        sys.exit(2)
-
+        save_mac_to_csv(prefix, manufacturer)
     else:
-        print("MAC adress: ", address)
-        print("Fabricante: ", "Not found")
+        print("Prefijo MAC: ", prefix)
+        print("Fabricante: Not found")
         print(f'Tiempo de respuesta: {r_time:.2f}ms')
-        sys.exit()
-    
-    
-    
 
+# Mostrar los fabricantes y los prefijos MAC del archivo CSV
+def show_arp():
+    with open(csv_file, mode='r', newline='') as file:
+        reader = csv.DictReader(file)
+        entries = list(reader)
+
+    if entries:
+        print("Fabricantes y sus respectivos prefijos MAC:")
+        for row in entries:
+            print(f"{row['prefix']} - {row['manufacturer']}")
+    else:
+        print("No se encontraron entradas en el archivo.")
+
+# Función de ayuda
 def help():
-    print('''Use: ./OUILookup --mac <mac> | --arp | [--help]\n
-          --mac: MAC a consultar. P.e. aa:bb:cc:00:00:00.\n
-          --arp: muestra los fabricantes de los host disponibles en la tabla arp.\n
-          --help: muestra este mensaje y termina.''')
-    sys.exit()
+    print('''Use: ./OUILookup --mac <mac> | --arp | [--help]
+          --mac: MAC a consultar. P.e. aa:bb:cc:00:00:00.
+          --arp: muestra los fabricantes de los hosts disponibles en el archivo CSV.
+          --help: muestra esta ayuda.
+    ''')
 
-
-def arp():
-    print('hola')
-    sys.exit()
-
-
-def main(argv):
+# Manejo de argumentos de línea de comandos
+if __name__ == "__main__":
+    create_csv()  # Crear el archivo CSV si no existe
+    
     try:
-        opts, argv =getopt.getopt(argv, "", ['mac=', "help", "arp"])
-    except getopt.GetoptError:
-        print('Error: use --help para ver modo de uso')
+        opts, args = getopt.getopt(sys.argv[1:], "", ["mac=", "arp", "help"])
+    except getopt.GetoptError as err:
+        print(err)
         sys.exit(2)
 
     for opt, arg in opts:
-        if opt == '--mac':
-            address= arg
-            get_mac(address)
-        elif opt == '--help':
+        if opt == "--mac":
+            get_mac(arg)
+        elif opt == "--arp":
+            show_arp()
+        elif opt == "--help":
             help()
-        elif opt == '--arp':
-            
-            arp()
-            
-
-if __name__ == "__main__":
-    main(sys.argv[1:])
