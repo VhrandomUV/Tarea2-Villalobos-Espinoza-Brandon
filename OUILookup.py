@@ -4,9 +4,18 @@ import getopt
 import time
 import csv
 import os
+import re
 
 # Definir el nombre del archivo CSV
 csv_file = 'mac_addresses.csv'
+
+# Normalizar la dirección MAC al formato aa:bb:cc:dd:ee:ff
+def normalize_mac(address):
+    # Eliminar cualquier separador (puntos, guiones, espacios) y convertir a minúsculas
+    address = re.sub(r'[^a-fA-F0-9]', '', address).lower()
+    
+    # Insertar dos puntos cada dos caracteres
+    return ':'.join(address[i:i+2] for i in range(0, len(address), 2))
 
 # Crear el archivo CSV si no existe
 def create_csv():
@@ -31,9 +40,12 @@ def save_mac_to_csv(prefix, manufacturer):
 
 # Obtener el fabricante de la API y guardar en el archivo CSV (usando solo el prefijo MAC)
 def get_mac(address):
-    # Extraer los primeros tres octetos
+
+    address = normalize_mac(address)
+
+    # Extraer los caracteres de interes
     prefix = ":".join(address.split(":")[:3])
-    url = f"https://api.macvendors.com/{prefix}"
+    url = f"https://api.macvendors.com/{address}"
     
     s_time = time.time()
     response = requests.get(url)
@@ -53,7 +65,7 @@ def get_mac(address):
         print(f'Tiempo de respuesta: {r_time:.2f}ms')
 
 # Mostrar los fabricantes y los prefijos MAC del archivo CSV
-def show_arp():
+def arp():
     with open(csv_file, mode='r', newline='') as file:
         reader = csv.DictReader(file)
         entries = list(reader)
@@ -87,6 +99,6 @@ if __name__ == "__main__":
         if opt == "--mac":
             get_mac(arg)
         elif opt == "--arp":
-            show_arp()
+            arp()
         elif opt == "--help":
             help()
