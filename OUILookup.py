@@ -5,6 +5,7 @@ import time
 import csv
 import os
 import re
+import subprocess
 
 # Definir el nombre del archivo CSV
 csv_file = 'mac_addresses.csv'
@@ -16,28 +17,6 @@ def normalize_mac(address):
     
     # Insertar dos puntos cada dos caracteres
     return ':'.join(address[i:i+2] for i in range(0, len(address), 2))
-
-# Crear el archivo CSV si no existe
-def create_csv():
-    if not os.path.exists(csv_file):
-        with open(csv_file, mode='w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['prefix', 'manufacturer'])  # Encabezados
-
-# Guardar el prefijo MAC y el fabricante en el archivo CSV, evitando duplicados
-def save_mac_to_csv(address, manufacturer):
-    prefix = ":".join(address.split(":")[:3])
-    with open(csv_file, mode='r', newline='') as file:
-        reader = csv.DictReader(file)
-        prefixes = [row['prefix'] for row in reader]
-    
-    if prefix in prefixes:
-        print(f"Prefijo {prefix} ya está en el archivo.")
-    else:
-        with open(csv_file, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([prefix, manufacturer])
-            print(f"Prefijo {prefix} y fabricante {manufacturer} guardados en el archivo.")
 
 # Obtener el fabricante de la API y guardar en el archivo CSV (usando solo el prefijo MAC)
 def get_mac(address):
@@ -59,7 +38,7 @@ def get_mac(address):
         print("Fabricante: ", manufacturer)
         print(f'Tiempo de respuesta: {r_time:.2f}ms')
         
-        save_mac_to_csv(address, manufacturer)
+        
     else:
         print("Dirección MAC: ", address)
         print("Fabricante: Not found")
@@ -67,28 +46,31 @@ def get_mac(address):
 
 # Mostrar los fabricantes y los prefijos MAC del archivo CSV
 def arp():
-    with open(csv_file, mode='r', newline='') as file:
-        reader = csv.DictReader(file)
-        entries = list(reader)
-
-    if entries:
-        print("Fabricantes y sus respectivos prefijos MAC:")
-        for row in entries:
-            print(f"{row['prefix']} - {row['manufacturer']}")
-    else:
-        print("No se encontraron entradas en el archivo.")
+    resultado = subprocess.run(['arp', '-a'], capture_output=True, text=True)
+    
+    # Expresión regular para encontrar las direcciones MAC
+    patron_mac = r'([0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2})'
+    
+    # Busca todas las coincidencias de direcciones MAC
+    direcciones_mac = re.findall(patron_mac, resultado.stdout)
+    
+    # Las direcciones MAC se capturan como tuplas, así que las convertimos en strings
+    direcciones_mac = [''.join(mac) for mac in direcciones_mac]
+    for mac in direcciones_mac:
+        get_mac(mac)
+    return direcciones_mac
 
 # Función de ayuda
 def help():
     print('''Use: ./OUILookup --mac <mac> | --arp | [--help]
           --mac: MAC a consultar. P.e. aa:bb:cc:00:00:00.
-          --arp: muestra los fabricantes de los hosts disponibles en el archivo CSV.
+          --arp: muestra los fabricantes de los hosts disponibles en la tabla arp.
           --help: muestra esta ayuda.
     ''')
 
 # Manejo de argumentos de línea de comandos
 if __name__ == "__main__":
-    create_csv()  # Crear el archivo CSV si no existe
+    
     
     try:
         opts, args = getopt.getopt(sys.argv[1:], "", ["mac=", "arp", "help"])
