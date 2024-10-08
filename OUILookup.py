@@ -11,17 +11,12 @@ import subprocess
 csv_file = 'mac_addresses.csv'
 
 # Normalizar la dirección MAC al formato aa:bb:cc:dd:ee:ff
-def normalize_mac(address):
-    # Eliminar cualquier separador (puntos, guiones, espacios) y convertir a minúsculas
-    address = re.sub(r'[^a-fA-F0-9]', '', address).lower()
-    
-    # Insertar dos puntos cada dos caracteres
-    return ':'.join(address[i:i+2] for i in range(0, len(address), 2))
+
 
 # Obtener el fabricante de la API y guardar en el archivo CSV (usando solo el prefijo MAC)
 def get_mac(address):
 
-    address = normalize_mac(address)
+    
 
     # Extraer los caracteres de interes
     
@@ -49,7 +44,8 @@ def arp():
     resultado = subprocess.run(['arp', '-a'], capture_output=True, text=True)
     
     # Expresión regular para encontrar las direcciones MAC
-    patron_mac = r'([0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2})'
+    #patron_mac = r'([0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2})'
+    patron_mac = r'([0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2})'
     
     # Busca todas las coincidencias de direcciones MAC
     direcciones_mac = re.findall(patron_mac, resultado.stdout)
