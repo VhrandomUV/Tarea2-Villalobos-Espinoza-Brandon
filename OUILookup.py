@@ -22,22 +22,23 @@ def get_mac(address):
     
     url = f"https://api.macvendors.com/{address}"
     
-    s_time = time.time()
+    
     response = requests.get(url)
-    e_time = time.time()
-    r_time = (e_time - s_time) * 1000
+    
 
     if response.status_code == 200:
         manufacturer = response.text.strip()
-        print("Dirección MAC: ", address)
-        print("Fabricante: ", manufacturer)
-        print(f'Tiempo de respuesta: {r_time:.2f}ms')
+        #print("Dirección MAC: ", address)
+        #print("Fabricante: ", manufacturer)
+        return manufacturer
         
         
     else:
-        print("Dirección MAC: ", address)
-        print("Fabricante: Not found")
-        print(f'Tiempo de respuesta: {r_time:.2f}ms')
+        manufacturer = "Not found"
+        #print("Dirección MAC: ", address)
+        #print("Fabricante: Not found")
+        #print(f'Tiempo de respuesta: {r_time:.2f}ms')
+        return manufacturer
 
 # Mostrar los fabricantes y los prefijos MAC del archivo CSV
 def arp():
@@ -53,7 +54,8 @@ def arp():
     # Las direcciones MAC se capturan como tuplas, así que las convertimos en strings
     direcciones_mac = [''.join(mac) for mac in direcciones_mac]
     for mac in direcciones_mac:
-        get_mac(mac)
+        
+        print(f"MAC: {mac}  || Fabricante: {get_mac(mac)}")
     return direcciones_mac
 
 # Función de ayuda
@@ -76,7 +78,14 @@ if __name__ == "__main__":
 
     for opt, arg in opts:
         if opt == "--mac":
-            get_mac(arg)
+            s_time = time.time()
+            
+            print("Dirección MAC: ", arg)
+            print("Fabricante: ", get_mac(arg))
+            e_time = time.time()
+            r_time = (e_time - s_time) * 1000
+            print(f'Tiempo de respuesta: {r_time:.2f}ms')
+
         elif opt == "--arp":
             arp()
         elif opt == "--help":
