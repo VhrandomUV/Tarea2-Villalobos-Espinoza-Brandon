@@ -1,11 +1,18 @@
+"""
+intengrantes 
+
+Brandon Villalobos ||   brandon.villalobos@alumos.uv.cl
+Benjamin González  ||   benjamin.gonzalez@alumos.uv.cl
+David Bombal       ||   david.bombal@alumos.uv.cl
+"""
+
 import sys
 import requests
 import getopt
 import time
-import csv
-import os
 import re
 import subprocess
+
 
 # Definir el nombre del archivo CSV
 csv_file = 'mac_addresses.csv'
@@ -16,28 +23,24 @@ csv_file = 'mac_addresses.csv'
 # Obtener el fabricante de la API y guardar en el archivo CSV (usando solo el prefijo MAC)
 def get_mac(address):
 
-    
-
     # Extraer los caracteres de interes
     
-    url = f"https://api.macvendors.com/{address}"
+    url = f"https://api.maclookup.app/v2/macs/{address}/company/name"
     
     
     response = requests.get(url)
+    manufacturer = response.text.strip()
     
 
-    if response.status_code == 200:
-        manufacturer = response.text.strip()
-        #print("Dirección MAC: ", address)
-        #print("Fabricante: ", manufacturer)
+    if response.status_code == 200 and manufacturer != "*NO COMPANY*":
+       
+        
         return manufacturer
         
         
     else:
         manufacturer = "Not found"
-        #print("Dirección MAC: ", address)
-        #print("Fabricante: Not found")
-        #print(f'Tiempo de respuesta: {r_time:.2f}ms')
+        
         return manufacturer
 
 # Mostrar los fabricantes y los prefijos MAC del archivo CSV
@@ -45,7 +48,7 @@ def arp():
     resultado = subprocess.run(['arp', '-a'], capture_output=True, text=True)
     
     # Expresión regular para encontrar las direcciones MAC
-    #patron_mac = r'([0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2}-[0-9a-fA-F]{2})'
+    
     patron_mac = r'([0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2}[:-][0-9a-fA-F]{2})'
     
     # Busca todas las coincidencias de direcciones MAC
@@ -66,10 +69,8 @@ def help():
           --help: muestra esta ayuda.
     ''')
 
-# Manejo de argumentos de línea de comandos
-if __name__ == "__main__":
-    
-    
+def main():
+  
     try:
         opts, args = getopt.getopt(sys.argv[1:], "", ["mac=", "arp", "help"])
     except getopt.GetoptError as err:
@@ -90,3 +91,10 @@ if __name__ == "__main__":
             arp()
         elif opt == "--help":
             help()
+
+
+
+# Manejo de argumentos de línea de comandos
+if __name__ == "__main__":
+    main()
+    
