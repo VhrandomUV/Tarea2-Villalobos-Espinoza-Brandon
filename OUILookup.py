@@ -14,13 +14,7 @@ import re
 import subprocess
 
 
-# Definir el nombre del archivo CSV
-csv_file = 'mac_addresses.csv'
-
-# Normalizar la dirección MAC al formato aa:bb:cc:dd:ee:ff
-
-
-# Obtener el fabricante de la API y guardar en el archivo CSV (usando solo el prefijo MAC)
+# Obtener el fabricante de la API
 def get_mac(address):
 
     # Extraer los caracteres de interes
@@ -34,7 +28,6 @@ def get_mac(address):
 
     if response.status_code == 200 and manufacturer != "*NO COMPANY*":
        
-        
         return manufacturer
         
         
@@ -43,7 +36,7 @@ def get_mac(address):
         
         return manufacturer
 
-# Mostrar los fabricantes y los prefijos MAC del archivo CSV
+# Mostrar los fabricantes de la tabla arp
 def arp():
     resultado = subprocess.run(['arp', '-a'], capture_output=True, text=True)
     
@@ -69,6 +62,8 @@ def help():
           --help: muestra esta ayuda.
     ''')
 
+
+# Función pricipal donde se definen los parametros
 def main():
   
     try:
@@ -94,7 +89,7 @@ def main():
 
 
 
-# Manejo de argumentos de línea de comandos
+
 if __name__ == "__main__":
     main()
     
