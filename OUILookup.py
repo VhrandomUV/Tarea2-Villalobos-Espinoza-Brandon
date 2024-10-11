@@ -63,7 +63,7 @@ def help():
     ''')
 
 
-# Función pricipal donde se definen los parametros
+# Función pricipal donde se definen los parametros y se mide el teimpo de respuesta
 def main():
   
     try:
