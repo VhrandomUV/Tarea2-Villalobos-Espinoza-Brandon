@@ -1,9 +1,9 @@
 """
 intengrantes 
 
-Brandon Villalobos ||   brandon.villalobos@alumos.uv.cl
-Benjamin González  ||   benjamin.gonzalez@alumos.uv.cl
-David Bombal       ||   david.bombal@alumos.uv.cl
+- Brandon Villalobos ||   brandon.villalobos@alumnos.uv.cl
+- Benjamin González  ||   benjamin.gonzalezg@alumnos.uv.cl
+- David Bombal       ||   david.bombal@alumnos.uv.cl
 """
 
 import sys
